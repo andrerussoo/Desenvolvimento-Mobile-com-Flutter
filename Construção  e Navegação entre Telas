@@ -1,0 +1,1054 @@
+
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const ReceitasApp());
+}
+
+// CORES DO APLICATIVO
+const azul = Color(0xFF2962A3);
+const azulEscuro = Color(0xFF1E3550);
+const azulClaro = Color(0xFFD6E7FA);
+const fundo = Color(0xFFFAF7F0);
+
+// MODELO DE RECEITA
+class Receita {
+  final String nome;
+  final String emoji;
+  final String tempo;
+  final String dificuldade;
+  final String categoria;
+  final String descricao;
+  final List<String> ingredientes;
+  final List<String> preparo;
+
+  const Receita({
+    required this.nome,
+    required this.emoji,
+    required this.tempo,
+    required this.dificuldade,
+    required this.categoria,
+    required this.descricao,
+    required this.ingredientes,
+    required this.preparo,
+  });
+}
+
+// DADOS DAS RECEITAS
+const List<Receita> receitas = [
+  Receita(
+    nome: 'Brownie de chocolate',
+    emoji: '🍫',
+    tempo: '45 min',
+    dificuldade: 'Médio',
+    categoria: 'Sobremesas',
+    descricao: 'Um brownie delicioso, macio por dentro e crocante por fora.',
+    ingredientes: [
+      '200g de chocolate',
+      '100g de manteiga',
+      '3 ovos',
+      '1 xícara de açúcar',
+      '1 xícara de farinha',
+    ],
+    preparo: [
+      'Derreta o chocolate com a manteiga.',
+      'Misture os ovos e o açúcar.',
+      'Acrescente a farinha e misture.',
+      'Coloque em uma forma untada.',
+      'Asse por aproximadamente 30 minutos.',
+    ],
+  ),
+  Receita(
+    nome: 'Salada de frango',
+    emoji: '🥗',
+    tempo: '20 min',
+    dificuldade: 'Fácil',
+    categoria: 'Almoço',
+    descricao: 'Uma salada leve, nutritiva e muito saborosa.',
+    ingredientes: [
+      'Frango desfiado',
+      'Alface',
+      'Tomate',
+      'Cenoura',
+      'Azeite e sal',
+    ],
+    preparo: [
+      'Cozinhe e desfie o frango.',
+      'Lave e corte os vegetais.',
+      'Misture todos os ingredientes.',
+      'Tempere com azeite e sal.',
+    ],
+  ),
+  Receita(
+    nome: 'Vitamina de morango',
+    emoji: '🍓',
+    tempo: '10 min',
+    dificuldade: 'Fácil',
+    categoria: 'Lanches',
+    descricao: 'Uma vitamina refrescante e prática para o dia a dia.',
+    ingredientes: [
+      '1 xícara de morangos',
+      '300ml de leite',
+      '2 colheres de açúcar',
+      'Gelo a gosto',
+    ],
+    preparo: [
+      'Lave os morangos.',
+      'Coloque todos os ingredientes no liquidificador.',
+      'Bata até ficar cremoso.',
+      'Sirva gelado.',
+    ],
+  ),
+  Receita(
+    nome: 'Macarrão cremoso com frango',
+    emoji: '🍝',
+    tempo: '30 min',
+    dificuldade: 'Fácil',
+    categoria: 'Jantar',
+    descricao: 'Uma receita prática e deliciosa para o dia a dia!',
+    ingredientes: [
+      'Macarrão',
+      'Frango desfiado',
+      'Creme de leite',
+      'Molho de tomate',
+      'Queijo ralado',
+    ],
+    preparo: [
+      'Cozinhe o macarrão.',
+      'Prepare o frango em uma panela.',
+      'Adicione o molho e o creme de leite.',
+      'Misture o macarrão ao molho.',
+      'Finalize com queijo ralado.',
+    ],
+  ),
+];
+
+// APLICATIVO PRINCIPAL
+class ReceitasApp extends StatelessWidget {
+  const ReceitasApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Receitas',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: azul),
+        scaffoldBackgroundColor: fundo,
+        useMaterial3: true,
+      ),
+      home: const Inicio(),
+    );
+  }
+}
+
+// TELA PRINCIPAL E NAVEGAÇÃO
+class Inicio extends StatefulWidget {
+  const Inicio({super.key});
+
+  @override
+  State<Inicio> createState() => _InicioState();
+}
+
+class _InicioState extends State<Inicio> {
+  int paginaSelecionada = 0;
+  final Set<String> favoritos = {};
+  String termoPesquisa = '';
+
+  void alterarFavorito(Receita receita) {
+    setState(() {
+      if (favoritos.contains(receita.nome)) {
+        favoritos.remove(receita.nome);
+      } else {
+        favoritos.add(receita.nome);
+      }
+    });
+  }
+
+  void pesquisar(String termo) {
+    final consulta = termo.trim();
+
+    if (consulta.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Digite o nome de uma receita para pesquisar.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      termoPesquisa = consulta;
+      paginaSelecionada = 2;
+    });
+  }
+
+  void abrirReceita(Receita receita) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DetalhesReceita(
+          receita: receita,
+          favorito: favoritos.contains(receita.nome),
+          onFavoritar: () => alterarFavorito(receita),
+        ),
+      ),
+    ).then((_) {
+      setState(() {});
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final telas = [
+      TelaInicio(
+        onPesquisar: pesquisar,
+        onAbrirReceita: abrirReceita,
+        favoritos: favoritos,
+        onFavoritar: alterarFavorito,
+      ),
+      TelaFavoritos(
+        favoritos: favoritos,
+        onAbrirReceita: abrirReceita,
+        onFavoritar: alterarFavorito,
+      ),
+      TelaReceitas(
+        termoInicial: termoPesquisa,
+        favoritos: favoritos,
+        onAbrirReceita: abrirReceita,
+        onFavoritar: alterarFavorito,
+      ),
+      const TelaPerfil(),
+    ];
+
+    return Scaffold(
+      body: IndexedStack(
+        index: paginaSelecionada,
+        children: telas,
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: paginaSelecionada,
+        onDestinationSelected: (index) {
+          setState(() {
+            paginaSelecionada = index;
+          });
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Início',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.favorite_border),
+            selectedIcon: Icon(Icons.favorite),
+            label: 'Favoritos',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.menu_book_outlined),
+            selectedIcon: Icon(Icons.menu_book),
+            label: 'Receitas',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Perfil',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// WIDGET DE CABEÇALHO
+Widget tituloPagina(String titulo, String subtitulo) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 20),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          titulo,
+          style: const TextStyle(
+            fontSize: 27,
+            fontWeight: FontWeight.bold,
+            color: azulEscuro,
+          ),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          subtitulo,
+          style: const TextStyle(fontSize: 15),
+        ),
+      ],
+    ),
+  );
+}
+
+// CARD DE RECEITA
+class CardReceita extends StatelessWidget {
+  final Receita receita;
+  final bool favorito;
+  final VoidCallback onAbrir;
+  final VoidCallback onFavoritar;
+
+  const CardReceita({
+    super.key,
+    required this.receita,
+    required this.favorito,
+    required this.onAbrir,
+    required this.onFavoritar,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: Colors.white,
+      elevation: 1,
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        onTap: onAbrir,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 15,
+          vertical: 8,
+        ),
+        leading: Text(
+          receita.emoji,
+          style: const TextStyle(fontSize: 35),
+        ),
+        title: Text(
+          receita.nome,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: azulEscuro,
+          ),
+        ),
+        subtitle: Text(
+          '${receita.tempo} • ${receita.dificuldade}',
+        ),
+        trailing: IconButton(
+          onPressed: onFavoritar,
+          icon: Icon(
+            favorito ? Icons.favorite : Icons.favorite_border,
+            color: favorito ? Colors.red : azul,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// TELA INICIAL
+class TelaInicio extends StatefulWidget {
+  final Function(String) onPesquisar;
+  final Function(Receita) onAbrirReceita;
+  final Set<String> favoritos;
+  final Function(Receita) onFavoritar;
+
+  const TelaInicio({
+    super.key,
+    required this.onPesquisar,
+    required this.onAbrirReceita,
+    required this.favoritos,
+    required this.onFavoritar,
+  });
+
+  @override
+  State<TelaInicio> createState() => _TelaInicioState();
+}
+
+class _TelaInicioState extends State<TelaInicio> {
+  final controller = TextEditingController();
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final destaque = receitas.last;
+
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            tituloPagina(
+              'Olá!',
+              'O que vamos cozinhar hoje?',
+            ),
+
+            const Text(
+              'Nome da receita',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+
+            const SizedBox(height: 8),
+
+            TextField(
+              controller: controller,
+              textInputAction: TextInputAction.search,
+              onSubmitted: widget.onPesquisar,
+              decoration: InputDecoration(
+                hintText: 'Buscar receitas...',
+                prefixIcon: const Icon(Icons.search),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => widget.onPesquisar(controller.text),
+                icon: const Icon(Icons.search),
+                label: const Text('Pesquisar'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: azul,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 25),
+
+            const Text(
+              'Receita em destaque',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: azulEscuro,
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            GestureDetector(
+              onTap: () => widget.onAbrirReceita(destaque),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: azul,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      destaque.emoji,
+                      style: const TextStyle(fontSize: 45),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      destaque.nome,
+                      style: const TextStyle(
+                        fontSize: 21,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      destaque.descricao,
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      '⏱ ${destaque.tempo}  •  ${destaque.dificuldade}',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Ver receita →',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 25),
+
+            const Text(
+              'Receitas populares',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: azulEscuro,
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            ...receitas.take(3).map(
+                  (receita) => CardReceita(
+                receita: receita,
+                favorito: widget.favoritos.contains(receita.nome),
+                onAbrir: () => widget.onAbrirReceita(receita),
+                onFavoritar: () => widget.onFavoritar(receita),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// TELA DE FAVORITOS
+class TelaFavoritos extends StatelessWidget {
+  final Set<String> favoritos;
+  final Function(Receita) onAbrirReceita;
+  final Function(Receita) onFavoritar;
+
+  const TelaFavoritos({
+    super.key,
+    required this.favoritos,
+    required this.onAbrirReceita,
+    required this.onFavoritar,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final listaFavoritos = receitas
+        .where((receita) => favoritos.contains(receita.nome))
+        .toList();
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            tituloPagina(
+              'Meus favoritos ❤️',
+              'Suas receitas preferidas estão aqui.',
+            ),
+
+            Expanded(
+              child: listaFavoritos.isEmpty
+                  ? const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.favorite_border,
+                      size: 65,
+                      color: azul,
+                    ),
+                    SizedBox(height: 15),
+                    Text(
+                      'Nenhuma receita favorita ainda.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    SizedBox(height: 5),
+                    Text(
+                      'Toque no coração de uma receita para salvá-la.',
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              )
+                  : ListView(
+                children: listaFavoritos.map((receita) {
+                  return CardReceita(
+                    receita: receita,
+                    favorito: true,
+                    onAbrir: () => onAbrirReceita(receita),
+                    onFavoritar: () => onFavoritar(receita),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// TELA DE RECEITAS
+class TelaReceitas extends StatefulWidget {
+  final String termoInicial;
+  final Set<String> favoritos;
+  final Function(Receita) onAbrirReceita;
+  final Function(Receita) onFavoritar;
+
+  const TelaReceitas({
+    super.key,
+    required this.termoInicial,
+    required this.favoritos,
+    required this.onAbrirReceita,
+    required this.onFavoritar,
+  });
+
+  @override
+  State<TelaReceitas> createState() => _TelaReceitasState();
+}
+
+class _TelaReceitasState extends State<TelaReceitas> {
+  late TextEditingController controller;
+  String termo = '';
+  String categoriaSelecionada = 'Todas';
+  String? erro;
+
+  final List<String> categorias = [
+    'Todas',
+    'Café da manhã',
+    'Almoço',
+    'Jantar',
+    'Sobremesas',
+    'Lanches',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    termo = widget.termoInicial;
+    controller = TextEditingController(text: termo);
+  }
+
+  @override
+  void didUpdateWidget(covariant TelaReceitas oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.termoInicial != widget.termoInicial) {
+      termo = widget.termoInicial;
+      controller.text = termo;
+    }
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  void pesquisar() {
+    final consulta = controller.text.trim();
+
+    setState(() {
+      if (consulta.isEmpty) {
+        erro = 'Digite o nome de uma receita para pesquisar.';
+        termo = '';
+      } else {
+        termo = consulta;
+        erro = null;
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final listaFiltrada = receitas.where((receita) {
+      final correspondeNome = receita.nome
+          .toLowerCase()
+          .contains(termo.toLowerCase());
+
+      final correspondeCategoria =
+          categoriaSelecionada == 'Todas' ||
+              receita.categoria == categoriaSelecionada;
+
+      return correspondeNome && correspondeCategoria;
+    }).toList();
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            tituloPagina(
+              'Todas as receitas',
+              'Encontre sua próxima receita favorita.',
+            ),
+
+            TextField(
+              controller: controller,
+              textInputAction: TextInputAction.search,
+              onSubmitted: (_) => pesquisar(),
+              decoration: InputDecoration(
+                hintText: 'Nome da receita...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () {
+                    controller.clear();
+                    setState(() {
+                      termo = '';
+                      erro = null;
+                    });
+                  },
+                ),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: pesquisar,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: azul,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Pesquisar'),
+              ),
+            ),
+
+            if (erro != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  erro!,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
+
+            const SizedBox(height: 15),
+
+            SizedBox(
+              height: 42,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: categorias.map((categoria) {
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(categoria),
+                      selected: categoriaSelecionada == categoria,
+                      selectedColor: azulClaro,
+                      onSelected: (_) {
+                        setState(() {
+                          categoriaSelecionada = categoria;
+                        });
+                      },
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+
+            const SizedBox(height: 15),
+
+            Text(
+              '${listaFiltrada.length} receita(s) encontrada(s)',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: azulEscuro,
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            Expanded(
+              child: listaFiltrada.isEmpty
+                  ? const Center(
+                child: Text(
+                  'Nenhuma receita encontrada.\n'
+                      'Tente outro nome ou categoria.',
+                  textAlign: TextAlign.center,
+                ),
+              )
+                  : ListView(
+                children: listaFiltrada.map((receita) {
+                  return CardReceita(
+                    receita: receita,
+                    favorito: widget.favoritos.contains(receita.nome),
+                    onAbrir: () =>
+                        widget.onAbrirReceita(receita),
+                    onFavoritar: () =>
+                        widget.onFavoritar(receita),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// TELA DE PERFIL
+class TelaPerfil extends StatelessWidget {
+  const TelaPerfil({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            tituloPagina(
+              'Meu perfil',
+              'Informações e configurações.',
+            ),
+
+            const SizedBox(height: 20),
+
+            const CircleAvatar(
+              radius: 55,
+              backgroundColor: azulClaro,
+              child: Icon(
+                Icons.person,
+                size: 65,
+                color: azul,
+              ),
+            ),
+
+            const SizedBox(height: 15),
+
+            const Text(
+              'Usuário',
+              style: TextStyle(
+                fontSize: 23,
+                fontWeight: FontWeight.bold,
+                color: azulEscuro,
+              ),
+            ),
+
+            const Text(
+              'Bem-vindo ao Receitas!',
+              style: TextStyle(fontSize: 15),
+            ),
+
+            const SizedBox(height: 30),
+
+            Card(
+              color: Colors.white,
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.person_outline, color: azul),
+                    title: const Text('Meus dados'),
+                    subtitle: const Text('Informações do usuário'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Área de dados em desenvolvimento.'),
+                        ),
+                      );
+                    },
+                  ),
+
+                  const Divider(height: 1),
+
+                  ListTile(
+                    leading: const Icon(Icons.notifications_outlined, color: azul),
+                    title: const Text('Notificações'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Configurações em desenvolvimento.'),
+                        ),
+                      );
+                    },
+                  ),
+
+                  const Divider(height: 1),
+
+                  ListTile(
+                    leading: const Icon(Icons.info_outline, color: azul),
+                    title: const Text('Sobre o aplicativo'),
+                    subtitle: const Text('Receitas - Versão 1.0'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      showAboutDialog(
+                        context: context,
+                        applicationName: 'Receitas',
+                        applicationVersion: '1.0',
+                        applicationLegalese: 'Aplicativo de receitas.',
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// TELA DE DETALHES DA RECEITA
+class DetalhesReceita extends StatelessWidget {
+  final Receita receita;
+  final bool favorito;
+  final VoidCallback onFavoritar;
+
+  const DetalhesReceita({
+    super.key,
+    required this.receita,
+    required this.favorito,
+    required this.onFavoritar,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: fundo,
+        title: const Text(
+          'Detalhes da receita',
+          style: TextStyle(color: azulEscuro),
+        ),
+        iconTheme: const IconThemeData(color: azulEscuro),
+      ),
+
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Text(
+                receita.emoji,
+                style: const TextStyle(fontSize: 90),
+              ),
+            ),
+
+            const SizedBox(height: 15),
+
+            Text(
+              receita.nome,
+              style: const TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: azulEscuro,
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            Text(receita.descricao),
+
+            const SizedBox(height: 15),
+
+            Row(
+              children: [
+                const Icon(Icons.access_time, color: azul),
+                const SizedBox(width: 5),
+                Text(receita.tempo),
+                const SizedBox(width: 20),
+                const Icon(Icons.restaurant, color: azul),
+                const SizedBox(width: 5),
+                Text(receita.dificuldade),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: onFavoritar,
+                icon: Icon(
+                  favorito ? Icons.favorite : Icons.favorite_border,
+                  color: Colors.red,
+                ),
+                label: Text(
+                  favorito
+                      ? 'Remover dos favoritos'
+                      : 'Adicionar aos favoritos',
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 25),
+
+            const Text(
+              'Ingredientes',
+              style: TextStyle(
+                fontSize: 21,
+                fontWeight: FontWeight.bold,
+                color: azulEscuro,
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            ...receita.ingredientes.map(
+                  (ingrediente) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.check_circle_outline,
+                      color: azul,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(child: Text(ingrediente)),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 25),
+
+            const Text(
+              'Modo de preparo',
+              style: TextStyle(
+                fontSize: 21,
+                fontWeight: FontWeight.bold,
+                color: azulEscuro,
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            ...receita.preparo.asMap().entries.map(
+                  (entrada) => Padding(
+                padding: const EdgeInsets.only(bottom: 15),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      radius: 15,
+                      backgroundColor: azulClaro,
+                      child: Text(
+                        '${entrada.key + 1}',
+                        style: const TextStyle(
+                          color: azulEscuro,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text(entrada.value)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
